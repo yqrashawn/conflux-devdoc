@@ -1,0 +1,30 @@
+version: 2
+jobs:
+  build:
+    branches:
+      ignore:
+        - gh-pages
+    docker:
+      - image: circleci/node:11
+    environment:
+      - GIT_USER: ConfluxBot
+      - USE_SSH: true
+      - CURRENT_BRANCH: master
+      - SOURCE_BRANCH: master
+      - TARGET_BRANCH: gh-pages
+    steps:
+      - checkout
+      - deploy:
+          name: Deploy site
+          command: |
+            if [ $CIRCLE_BRANCH == $SOURCE_BRANCH ]; then
+              git config --global user.email $GH_EMAIL
+              git config --global user.name $GH_NAME
+              git clone $CIRCLE_REPOSITORY_URL project
+
+              cd project
+              yarn --frozen-lockfile
+              yarn build
+              cp -r .circleci build
+              yarn deploy
+            fi
